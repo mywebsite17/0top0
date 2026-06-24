@@ -81,13 +81,13 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <link rel="manifest" href="./manifest.json?v=v1782245581172">
-    <meta name="theme-color" content="#ff00ff">
-    <link rel="apple-touch-icon" href="./icon-192.png?v=v1782245581172">
+    <link rel="manifest" href="./manifest.json?v=v1782283700824">
+    <meta name="theme-color" content="#535696">
+    <link rel="apple-touch-icon" href="./icon-192.png?v=v1782283700824">
     <script>
       if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
-          navigator.serviceWorker.register('./sw.js?v=v1782245581172')
+          navigator.serviceWorker.register('./sw.js?v=v1782283700824')
             .then(reg => console.log('SW Registered'))
             .catch(err => console.log('SW Failed', err));
         });
@@ -160,11 +160,13 @@
 
             <hr style="border: 1px dashed var(--text-muted); margin: 20px 0; opacity: 0.5;">
             
-            <h4 style="color: #38bdf8; margin-bottom: 10px; font-size: 1.2rem;">إعدادات السيرفر (Firebase) 🔗</h4>
-            <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 10px;">انسخ كود الـ Firebase بالكامل هنا لتبديل السيرفر.</p>
-            <textarea id="fb_config_text" placeholder="مثال:&#10;const firebaseConfig = {&#10;  apiKey: '...',&#10;  databaseURL: '...'&#10;};" style="width: 100%; height: 150px; padding: 12px; margin-bottom: 15px; border-radius: 8px; border: 1px solid var(--text-muted); background: var(--bg-color); color: var(--text-main); font-size: 1rem; outline: none; text-align: left; direction: ltr; resize: vertical;"></textarea>
-            
-            <button onclick="saveFirebaseConfig()" style="background: #2563eb; padding: 10px 20px; font-size: 1rem; width: 100%; margin-bottom: 20px; border-radius: 8px; color: white; border: none; font-weight: bold; cursor: pointer;"><i class="fas fa-server"></i> حفظ وتأكيد إعدادات السيرفر</button>
+            <h4 style="color: #38bdf8; margin-bottom: 10px; font-size: 1.2rem;">إعدادات السيرفر النشط (Firebase) 🔗</h4>
+            <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 10px;">اختر السيرفر الذي ترغب في ربط أقسام الموقع عليه:</p>
+            <select id="fb_server_select" style="width: 100%; padding: 12px; margin-bottom: 15px; border-radius: 8px; border: 1px solid var(--text-muted); background: var(--bg-color); color: var(--text-main); font-size: 1.1rem; outline: none; font-weight: bold; cursor: pointer;">
+                <option value="server1">السيرفر الأول (myyppproject)</option>
+                <option value="server2">السيرفر الثاني (spygame-337ee)</option>
+            </select>
+            <button onclick="saveFirebaseConfig()" style="background: #2563eb; padding: 10px 20px; font-size: 1rem; width: 100%; margin-bottom: 20px; border-radius: 8px; color: white; border: none; font-weight: bold; cursor: pointer;"><i class="fas fa-server"></i> حفظ وتأكيد السيرفر الحالي</button>
 
             <button onclick="document.getElementById('adminPanel').style.display='none'" style="background: #333; padding: 10px 20px; font-size: 1rem; width: 100%; border-radius: 8px; color: white; border: none; cursor: pointer;"><i class="fas fa-times"></i> إغلاق</button>
         </div>
@@ -189,56 +191,32 @@
         <div class="modal-content">
             <h3 style="color: var(--accent-glow); margin-bottom: 15px;">سجل آخر 10 أسئلة 🕒</h3>
             <div id="historyList" style="text-align: right; margin: 15px 0; max-height: 300px; overflow-y: auto; color: var(--text-main); font-size: 1.1rem; line-height: 1.6; background: rgba(0,0,0,0.2); border-radius: 8px; padding: 10px;"></div>
-            <button onclick="document.getElementById('historyModal').style.display='none'" style="background: #e11d48; padding: 12px; font-size: 1.1rem; width: 100%; border-radius: 8px; color: white; border: none; font-weight: bold; cursor: pointer;">إغلاق</button>
+            <button onclick="document.getElementById('historyModal').style.display='none'" style="background: #e11d48; padding: 12px; font-size: 1.1rem; width: 100%; border-radius: 8px; color: white; border: none; cursor: pointer;">إغلاق</button>
         </div>
     </div>
 
     <script>
-        // المتغيرات العالمية الأساسية
         if(typeof window.allPools === "undefined") window.allPools = {};
         if(typeof window.memory === "undefined") window.memory = {};
         if(typeof window.globalMemory === "undefined") window.globalMemory = [];
         if(typeof window.customSelectedCategories === "undefined") window.customSelectedCategories = [];
         if(typeof window.authenticatedCats === "undefined") window.authenticatedCats = [];
 
-        // إعدادات السيرفر
         window.saveFirebaseConfig = function() {
-            const text = document.getElementById('fb_config_text').value;
-            const extract = (key) => {
-                const regex = new RegExp(key + "\s*:\s*["']([^"']+)["']");
-                const match = text.match(regex);
-                return match ? match[1] : "";
-            };
-
-            const config = {
-                apiKey: extract("apiKey"),
-                authDomain: extract("authDomain"),
-                databaseURL: extract("databaseURL"),
-                projectId: extract("projectId"),
-                storageBucket: extract("storageBucket"),
-                messagingSenderId: extract("messagingSenderId"),
-                appId: extract("appId"),
-                measurementId: extract("measurementId")
-            };
-
-            if(!config.apiKey || !config.databaseURL) {
-                alert("لم يتم العثور على إعدادات صحيحة! تأكد من نسخ كود Firebase بالكامل داخل المربع.");
-                return;
-            }
-
-            localStorage.setItem('customFirebaseConfig', JSON.stringify(config));
-            alert("تم حفظ إعدادات السيرفر بنجاح! سيتم تحديث الصفحة لتطبيق التغييرات.");
+            const select = document.getElementById('fb_server_select');
+            localStorage.setItem('selectedFirebaseServer', select.value);
+            alert("تم تثبيت السيرفر النشط بنجاح! سيتم إعادة تحميل الموقع لتطبيق التغيير.");
             location.reload();
         };
 
-        // الذاكرة ومنع التكرار (لمدة يومين = 48 ساعة)
+        // الذاكرة لمنع التكرار الصارم لمدة يومين كاملين (48 ساعة = 172800000 ملي ثانية)
         window.questionCooldowns = JSON.parse(localStorage.getItem("qCooldowns")) || {};
         window.last10Questions = JSON.parse(localStorage.getItem("last10Q")) || [];
 
         window.isQuestionOnCooldown = function(q) {
             if (!window.questionCooldowns[q]) return false;
             const now = Date.now();
-            if (now - window.questionCooldowns[q] < 172800000) { // 48 ساعة
+            if (now - window.questionCooldowns[q] < 172800000) { 
                 return true;
             } else {
                 delete window.questionCooldowns[q];
@@ -248,7 +226,6 @@
 
         window.markQuestionUsed = function(q) {
             window.questionCooldowns[q] = Date.now();
-            
             window.last10Questions = window.last10Questions.filter(item => item !== q);
             window.last10Questions.unshift(q);
             if(window.last10Questions.length > 10) window.last10Questions.pop();
@@ -276,29 +253,27 @@
             document.getElementById('historyModal').style.display = 'flex';
         }
 
-        // --- الدالة الذكية لفك صيغ الإدخال المتعددة ---
+        // الدالة الذكية والمحصنة لفك كافة صيغ الإدخال (سطور أو علامات تنصيص وفواصل)
         window.parseInputQuestions = function(text) {
-            let parsed = [];
-            try {
-                if(text.trim().startsWith('[')) {
-                    parsed = JSON.parse(text);
-                    return parsed.map(q => String(q).trim()).filter(q => q.length > 0);
-                }
-            } catch(e) {}
+            if(!text) return [];
+            let t = String(text).trim();
             
-            let matches = text.match(/"([^"]+)"/g);
-            if (matches && matches.length > 0) {
-                parsed = matches.map(m => m.replace(/^"|"$/g, '').trim()).filter(q => q.length > 0);
-                if (parsed.length > 0) return parsed;
+            if (t.startsWith('[')) {
+                try { return JSON.parse(t).map(q=>String(q).trim()).filter(q=>q.length>0); } catch(e){}
             }
+            
+            t = t.replace(/",\s*"/g, '||SPLIT||');
+            t = t.replace(/","/g, '||SPLIT||');
+            t = t.replace(/",\s*/g, '||SPLIT||');
+            t = t.replace(/(^"|"$)/g, ''); 
 
-            parsed = text.split(/\r?\n/).map(q => q.trim()).filter(q => q.length > 0);
+            let parts = t.split(/\|\|SPLIT\|\||\r?\n/);
+            let parsed = parts.map(q => q.replace(/(^"|"$)/g, '').trim()).filter(q => q.length > 0);
             return parsed;
         };
 
-        // --- كود قراءة النص بالصوت (TTS) باللغة العربية ---
+        // كود قراءة النص بالصوت (TTS) باللغة العربية
         let useFemaleVoice = false; 
-        
         if ('speechSynthesis' in window) {
             window.speechSynthesis.onvoiceschanged = function() {
                 window.speechSynthesis.getVoices(); 
@@ -335,10 +310,8 @@
                 }
 
                 window.speechSynthesis.speak(msg);
-                
                 showToast(useFemaleVoice ? "🗣️ بتسمع بصوت بنت" : "🗣️ بتسمع بصوت شاب", "fa-volume-up");
                 useFemaleVoice = !useFemaleVoice; 
-                
             } else {
                 showToast("متصفحك مش بيدعم قراءة النصوص!", "fa-times-circle");
             }
@@ -385,7 +358,6 @@
             <div class="question-text" id="questionText" style="color: var(--text-muted); opacity: 0.7; font-size: 1.4rem;">
                 دوس على "سؤال جديد" عشان تبدأ...
             </div>
-            <!-- البادج لمعرفة القسم المصدر -->
             <div id="questionSourceBadge"></div>
             <i class="fas fa-quote-right quote-icon quote-left"></i>
         </div>
@@ -515,7 +487,7 @@
             const poolInfo = window.allPools[newCat];
 
             if (poolInfo.password && !window.authenticatedCats.includes(newCat)) {
-                const pass = prompt(`القسم محمي. الرجاء إدخال كلمة المرور:` + "\n(الخاصة بالقسم أو الخاصة بالمدير)");
+                const pass = prompt(`القسم محمي. الرجاء إدخال كلمة المرور:` + "\\n(الخاصة بالقسم أو الخاصة بالمدير)");
                 if (pass !== poolInfo.password && pass !== "#ZMsd42d*") {
                     alert("كلمة المرور خاطئة!");
                     select.value = previousCategory;
@@ -835,9 +807,9 @@
             }
             if (isValid) {
                 document.getElementById('adminPanel').style.display = 'flex';
-                const ta = document.getElementById('fb_config_text');
-                if(ta && typeof fbConfig !== 'undefined') {
-                    ta.value = "const firebaseConfig = " + JSON.stringify(fbConfig, null, 2) + ";";
+                const selectBox = document.getElementById('fb_server_select');
+                if(selectBox) {
+                    selectBox.value = localStorage.getItem('selectedFirebaseServer') || 'server1';
                 }
             } else {
                 alert("عذراً، كلمة المرور غير صحيحة!");
@@ -894,26 +866,37 @@
         }
     </script>
 
-    <!-- Firebase SDK - مكتبة واحدة فقط محكمّة الإغلاق ومربوطة بالإعدادات الديناميكية -->
+    <!-- Firebase SDK - مكتبة واحدة فقط مدمج بها السيرفرين برمجياً وجاهزة للـ GitHub -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getDatabase, ref, set, push, get, child, remove, update } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-        // استدعاء السيرفر (بيستخرج الإعدادات المحفوظة أو بيستخدم الأساسي اللي طلبته)
-        window.fbConfig = JSON.parse(localStorage.getItem('customFirebaseConfig'));
-        if(!window.fbConfig) {
-            window.fbConfig = {
+        // قواعد البيانات والمفاتيح الخاصة بكلا السيرفرين
+        const firebaseConfigsPool = {
+            server1: {
                 apiKey: "AIzaSyCA8tjD2nzixDARhXApDLZrtDBIqJY_0I0",
                 authDomain: "myyppproject.firebaseapp.com",
                 databaseURL: "https://myyppproject-default-rtdb.firebaseio.com",
                 projectId: "myyppproject",
                 storageBucket: "myyppproject.firebasestorage.app",
                 messagingSenderId: "679811302650",
-                appId: "1:679811302650:web:23da36e87af1845194b543"
-            };
-        }
+                appId: "1:679811302650:web:23da36e87af1845194b543",
+                measurementId: "G-8X5ET6BQFY"
+            },
+            server2: {
+                apiKey: "AIzaSyBtIkF-UhkeFa-cxutgJAQpR7K_IjKxloc",
+                authDomain: "spygame-337ee.firebaseapp.com",
+                databaseURL: "https://spygame-337ee-default-rtdb.firebaseio.com", 
+                projectId: "spygame-337ee",
+                storageBucket: "spygame-337ee.firebasestorage.app"
+            }
+        };
 
-        const app = initializeApp(window.fbConfig);
+        // استدعاء السيرفر النشط، والافتراضي هو الأول
+        let activeServerKey = localStorage.getItem('selectedFirebaseServer') || 'server1';
+        const targetConfig = firebaseConfigsPool[activeServerKey] || firebaseConfigsPool['server1'];
+
+        const app = initializeApp(targetConfig);
         const db = getDatabase(app);
         
         window.saveNewCategory = async function() {
@@ -1184,7 +1167,7 @@
 
                             window.allPools[catId] = {
                                 title: cat.name + " ☁️",
-                                desc: "قسم مضاف من السيرفر",
+                                desc: "قسم مضاف من السيرفر النشط",
                                 data: safeQuestions,
                                 password: cat.password || null
                             };
@@ -1218,7 +1201,7 @@
             
             if (savedCat && window.allPools[savedCat]) {
                 if(window.allPools[savedCat].password) {
-                    const pass = prompt(`القسم "${window.allPools[savedCat].title}" محمي بكلمة مرور لاستئناف الجلسة:` + "\n(أدخلها للاستمرار في القسم أو سيتم إعادتك للرئيسية)");
+                    const pass = prompt(`القسم "${window.allPools[savedCat].title}" محمي بكلمة مرور لاستئناف الجلسة:` + "\\n(أدخلها للاستمرار في القسم أو سيتم إعادتك للرئيسية)");
                     if(pass !== window.allPools[savedCat].password && pass !== "#ZMsd42d*") {
                         alert("كلمة مرور خاطئة، تم العودة للقسم الأساسي.");
                         currentCategory = "midnight";
